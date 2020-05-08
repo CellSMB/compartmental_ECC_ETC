@@ -793,7 +793,7 @@ legend('ctrl','+123% IP3Rs, -31% RyRs')
 
 end
 
-%% Result 3: Compare difference channel numbers
+%% Result 3: Compare different channel numbers
 % Generate sims
 if 1
     titletext={'Cytosol','','SR','I_{RyR}','I_{SERCA}','I_{IP_3R}'};
