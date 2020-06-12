@@ -1,5 +1,5 @@
 
-function [VOI, STATES, ALGEBRAIC, CONSTANTS] = IncDelayModelNumbers_PS(params,initStates)
+function [VOI, STATES, ALGEBRAIC, CONSTANTS] = ECC_ETC_PS(params,initStates)
     fluxvar   =params(6);
     t_max     =params(2);
     K_c       =params(3);
@@ -10,7 +10,7 @@ function [VOI, STATES, ALGEBRAIC, CONSTANTS] = IncDelayModelNumbers_PS(params,in
     N_RyR     =params(8);
     N_SERCA   =params(9);
     N_NCX     =params(10);
-    max_time  =params(11);
+    maxtime  =params(11);
     % 1 ctrl no ip 2 ctrl hip 3 hyp hip 4 hf hip 5 hf lip 6 ctrl lip 7 hyp lip 9 hyp noip
     global var1;
     var1=fluxvar;
@@ -308,7 +308,7 @@ function [VOI, STATES, ALGEBRAIC, CONSTANTS] = solveModel(initStates)
     [INIT_STATES, CONSTANTS] = initConsts(initStates);
 
     % Set timespan to solve over
-    tspan = [0, (vart*1000)+20*CONSTANTS(:,7)-1];
+    tspan = [0, vart];
 
     % Set numerical accuracy options for ODE solver
     options = odeset('RelTol', 1e-06, 'AbsTol', 1e-06, 'MaxStep', 1);

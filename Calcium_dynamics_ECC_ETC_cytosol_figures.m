@@ -1,7 +1,7 @@
 %% This is a script to generate figures for the paper Hunt, Tilunaite, 
 % Bass, Roderick,Soeller,Rajagopal,Crampin 2020
 % Written by H Hunt 2020
-
+savepath='./';
 %% Figure 2C
 % Calculate model
 % Base case
@@ -189,7 +189,7 @@ ti = {'Amplitude','FDHM','FD at 90% of max','Time to peak','Baseline','Duty cycl
 yl={'(mM)','(ms)','(ms)','(ms)','(mM)','','(mM)','(ms)','(ms)','(ms)','','','','mM','mM'};
 numVars = 5;
 if isip3
-    xl={'IP_3','t_{max}','K_c','K_h','K_t'};
+    xl={'[IP_3]','t_{max}','K_c','K_h','K_t'};
 else
     xl={'k_f','t_{max}','K_c','K_h','K_t'};
 end
@@ -198,7 +198,7 @@ end
 ii=1;jj=3;
 numRuns=400;
 resrange=401:800;
-isip3=0;
+isip3=1;
 if isip3
 resrange1=find(results(resrange,1)<=150)+numRuns;
 resrange2=find(results(resrange,3)<=60)+numRuns;
@@ -227,7 +227,7 @@ for qual = quals
     else
         figure('position',[0,200,560,450])
     end
-    plot(f,'Style','contour')
+    plot(f','Style','contour')
     set(gca,'FontSize',16)
     view(90,-90)
     axis('square')
@@ -255,6 +255,10 @@ period=1000;
 % Run the Calcium_dynamics_ECC_ETC_cytosol_PS to generate the table of
 % simulations
 results = Calcium_dynamics_ECC_ETC_cytosol_PS(isip3,period);
+base=results(401,:);
+
+bg=401;
+en=800;
 
 if isip3
     ip3=reshape(results(bg:en,1),[20,20])*10;
@@ -277,6 +281,12 @@ rgb_increase_regions(:,:,1)=1*(amplitude>0);
 rgb_increase_regions(:,:,2)=1*(fdhm<0)-1*(fdhm>0);
 rgb_increase_regions(:,:,3)=1*(diastolicca>0);
 new_rgb=rgb_increase_regions;
+
+c_p = [123 50 144]/255;
+c_or = [217 83 25]/255;
+c_blu = [23 114 189]/255;
+c_y = [247 177 41]/255;
+c_gr = [119 172 49]/255;
 for ii=1:20
     for jj=1:20
         if permute(rgb_increase_regions(ii,jj,:),[1,3,2])==[1,1,0]
@@ -301,12 +311,10 @@ end
 imagesc([Kc(1,1), Kc(end,end)],[ip3(1,1),ip3(end,end)],new_rgb)
     set(gca,'FontSize',16)
     axis('square')
-ylim([0,uplimy])
-xlim([0,uplimx])
 
 view(0,-90)
 xlabel('K_c (\mu M)')
-if whichparam
+if isip3
     ylabel('IP_3 (\mu M)','FontSize',20)
 else
     ylabel('k_f (\mu m^3 /ms)','FontSize',20)
@@ -314,19 +322,22 @@ end
 title('Change regions','FontSize',24)
 %% Figure 5, S3
 % Generate sims
+% isip3=1 for Figure 5 and 0 for figure S3
+isip3=1;
 if isip3
     strparams='varyingIP3';
-    paramsb=[0,1,1,1,1,0,1,1,1,1];
-    params1=[1,1,1,1,1,15,1,1,1,1];
-    params2=[1,10,32,6,10,15,1,1,1,1];
-    params3=[1,10,40,6,10,15,1,1,1,1];
+    kf=1.5;
+    paramsb=[0,1,1,1,1,0,1,1,1,1,3e3];
+    params1=[1,1,1,1,1,kf,1,1,1,1,3e3];
+    params2=[1,10,28,6,10,kf,1,1,1,1,3e3];
+    params3=[1,10,40,6,10,kf,1,1,1,1,3e3];
     params4=[];
 else 
     strparams='varyingkf';
-    paramsb=[0,1,1,1,1,0,1,1,1,1];
-    params1=[1,1,1,1,1,15,1,1,1,1];
-    params2=[1,10,32,6,10,15,1,1,1,1];
-    params3=[1,10,40,6,10,15,1,1,1,1];
+    paramsb=[0,1,1,1,1,0,1,1,1,1,3e3];
+    params1=[1,1,1,1,1,15,1,1,1,1,3e3];
+    params2=[1,10,32,6,10,15,1,1,1,1,3e3];
+    params3=[1,10,40,6,10,15,1,1,1,1,3e3];
     params4=[1,10,48,6,10,80,1,1,1,1];
 end
 maxRedo=1e3;
@@ -601,6 +612,9 @@ for ii=[1,2,3:6]
    if ~isempty(params4)
    axis([0 200 min([0;values3{ii};valuesb{ii};values1{ii};values2{ii};values4{ii}]) max([values4{ii};valuesb{ii};values1{ii};values2{ii}])])
    end
+   if ii==1
+       axis([0 200 0.08 0.7])
+   end
 end
 
 subplot(numd,numa,3)
@@ -614,6 +628,85 @@ saveas(gcf,strcat(savepath,'fluxhip',strparams,'.eps'),'epsc')
 saveas(gcf,strcat(savepath,'fluxhip',strparams,'.fig'))
 end
 end
+
+%% Figure 9
+namedesc='NFAT2';
+ti = {'Dephosphorylated NFAT_n','Phosphorylated NFAT_n','Dephosphorylated NFAT_c','Phosphorylated NFAT_c'};%20
+numVars = 3;
+numRuns=(size(results,1)-1);
+xl={'IP_3','K_c','k_f'};
+% isip3 should be 1 for Figure 9A and 0 for Figure 9B
+isip3=1;
+results = NFAT_PS(isip3);
+
+ii=1;jj=2;
+numRuns=size(results,1);
+resrange=1:numRuns;
+
+resrange1=find(results(resrange,1)<=2);
+kfval=15;
+resrange=intersect(find(results(resrange,3)==kfval),resrange1);
+quals=[numVars+1];
+for qual = quals
+    dc=results(resrange,qual)/results(1,qual);
+    dc=dc*100-100;
+    if isip3
+        f = fit([results(resrange,(ii))*10, 2e-1*results(resrange,(jj))],dc,'linearinterp');
+    else
+        f = fit([results(resrange,(ii))*3e-2, 2e-1*results(resrange,(jj))],dc,'linearinterp');
+    end
+    
+    figure('position',[100,200,560,450]*1.04)
+    plot(f,'Style','contour')
+    hold on
+    if isip3
+        xcross=10;
+    else
+        xcross=15*3e-2;
+    end
+    plot(xcross,40*2e-1,'x','MarkerSize',10,'LineWidth',4)
+    plot(xcross,40*2e-1,'x','MarkerSize',10,'LineWidth',4)
+    plot(xcross,32*2e-1,'x','MarkerSize',10,'LineWidth',4)
+    if ~isip3
+    plot(80*3e-2,48*2e-1,'x','MarkerSize',10,'LineWidth',4)
+    else
+        plot(xcross,1*2e-1,'x','MarkerSize',10,'LineWidth',4)
+    end
+    plot(xcross,1*2e-1,'x','MarkerSize',10,'LineWidth',4)
+    
+    plot(xcross,40*2e-1,'o','MarkerSize',15,'Color',[0 0 0],'LineWidth',2)
+    plot(xcross,32*2e-1,'o','MarkerSize',15,'Color',[0 0 0],'LineWidth',2)
+    plot(xcross,1*2e-1,'o','MarkerSize',15,'Color',[0 0 0],'LineWidth',2)
+    if ~isip3
+    plot(80*3e-2,48*2e-1,'o','MarkerSize',15,'Color',[0 0 0],'LineWidth',2)
+    end
+    set(gca,'FontSize',16)
+    view(90,-90)
+    axis('square')
+    cb=colorbar;
+    cb.Title.String = '+';
+    cb.Title.Position(2) = 352;
+    cb.Title.Position(1) = 50;
+    title(strcat(ti{qual-numVars},{' '},'(%)'),'FontSize',25)
+    ylabel(strcat(xl(jj),{' '},'(\muM)'),'FontSize',20)
+    caxis([-60 160])
+colormap(bluewhitered)
+if isip3
+    axis([0 14 1e-1 10])
+    xlabel(strcat(xl(ii),{' '},'(\muM)'),'FontSize',20)
+      saveas(gcf,strcat(savepath,'contour_ip3_K_c_pc',...
+    ti{qual-numVars},namedesc,'.eps'),'epsc')
+saveas(gcf,strcat(savepath,'contour_change_ip3_K_c_kf-',num2str(kfval),namedesc,'.fig'))
+else
+    axis([0 2.8 0 10])
+    xlabel(strcat(xl(ii),{' '},'(\mum^3/ms)'),'FontSize',20)
+    saveas(gcf,strcat(savepath,'contour_kf_K_c_',...
+    ti{qual-numVars},namedesc,'.eps'),'epsc')
+saveas(gcf,strcat(savepath,'contour_change_kf_K_c_',...
+    ti{qual-numVars},namedesc,'.fig'),'epsc')
+end
+end
+
 %% Figure S1
 % Change the beat period in ECC_ETC_PS (CONSTANTS(:,7)) to
 % change the amount of time simulated.
